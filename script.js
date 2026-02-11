@@ -2,7 +2,11 @@ console.log("Welcome to Spotify");
 
 // Initialize the Variables
 let songIndex = 0;
-let audioElement = new Audio("songs/1.mp3");
+let audioElement = new Audio("1.mp3");
+audioElement.addEventListener("error", (e) => {
+  console.error("Error loading audio file:", audioElement.src, e);
+  alert("Error loading audio file. Check console for details.");
+});
 let masterPlay = document.getElementById("masterPlay");
 let myProgressBar = document.getElementById("myProgressBar");
 let gif = document.getElementById("gif");
@@ -12,53 +16,53 @@ let songItems = Array.from(document.getElementsByClassName("songItem"));
 let songs = [
   {
     songName: "On & On-Cartoon, Daniel Levi",
-    filePath: "songs/1.mp3",
-    coverPath: "covers/1.jpg",
+    filePath: "1.mp3",
+    coverPath: "1.jpg",
   },
   {
     songName: "Invincible-DEAF KEV",
-    filePath: "songs/2.mp3",
-    coverPath: "covers/2.jpg",
+    filePath: "2.mp3",
+    coverPath: "2.jpg",
   },
   {
     songName: "Mortals-Warriyo, Laura Brehm",
-    filePath: "songs/3.mp3",
-    coverPath: "covers/3.jpg",
+    filePath: "3.mp3",
+    coverPath: "3.jpg",
   },
   {
     songName: "Shine-Spektrem",
-    filePath: "songs/4.mp3",
-    coverPath: "covers/4.jpg",
+    filePath: "4.mp3",
+    coverPath: "4.jpg",
   },
   {
     songName: "Why We Lose-Cartoon, Coleman Trapp",
-    filePath: "songs/5.mp3",
-    coverPath: "covers/5.jpg",
+    filePath: "5.mp3",
+    coverPath: "5.jpg",
   },
   {
     songName: "Sky High-Elektronomia",
-    filePath: "songs/6.mp3",
-    coverPath: "covers/6.jpg",
+    filePath: "6.mp3",
+    coverPath: "6.jpg",
   },
   {
     songName: "Symbolism-Electro-Light",
-    filePath: "songs/7.mp3",
-    coverPath: "covers/7.jpg",
+    filePath: "7.mp3",
+    coverPath: "7.jpg",
   },
   {
     songName: "Heroes Tonight-Janji, Johnning",
-    filePath: "songs/8.mp3",
-    coverPath: "covers/8.jpg",
+    filePath: "8.mp3",
+    coverPath: "8.jpg",
   },
   {
     songName: "My Heart-Different Heaven, EH!DE",
-    filePath: "songs/9.mp3",
-    coverPath: "covers/9.jpg",
+    filePath: "9.mp3",
+    coverPath: "9.jpg",
   },
   {
     songName: "Feel Good-Syn Cole",
-    filePath: "songs/10.mp3",
-    coverPath: "covers/10.jpg",
+    filePath: "10.mp3",
+    coverPath: "10.jpg",
   },
 ];
 
@@ -74,17 +78,21 @@ masterPlay.addEventListener("click", () => {
     masterPlay.classList.remove("fa-play-circle");
     masterPlay.classList.add("fa-pause-circle");
     gif.style.opacity = 1;
+    updateSongListPlayIcon(songIndex);
   } else {
     audioElement.pause();
     masterPlay.classList.remove("fa-pause-circle");
     masterPlay.classList.add("fa-play-circle");
     gif.style.opacity = 0;
+    makeAllPlays();
   }
 });
 // Listen to Events
 audioElement.addEventListener("timeupdate", () => {
   // Update Seekbar
-  progress = parseInt((audioElement.currentTime / audioElement.duration) * 100);
+  let progress = parseInt(
+    (audioElement.currentTime / audioElement.duration) * 100 || 0,
+  );
   myProgressBar.value = progress;
 });
 
@@ -102,14 +110,26 @@ const makeAllPlays = () => {
   );
 };
 
+const updateSongListPlayIcon = (index) => {
+  makeAllPlays();
+  let element = document.getElementById(`songItemPlay${index}`);
+  if (element) {
+    element.classList.remove("fa-play-circle");
+    element.classList.add("fa-pause-circle");
+  } else {
+    console.error(`Element with id songItemPlay${index} not found`);
+  }
+};
+
 Array.from(document.getElementsByClassName("songItemPlay")).forEach(
   (element) => {
     element.addEventListener("click", (e) => {
       makeAllPlays();
-      songIndex = parseInt(e.target.id);
+      // Extract number from id "songItemPlayX"
+      songIndex = parseInt(e.target.id.replace("songItemPlay", ""));
       e.target.classList.remove("fa-play-circle");
       e.target.classList.add("fa-pause-circle");
-      audioElement.src = `songs/${songIndex + 1}.mp3`;
+      audioElement.src = songs[songIndex].filePath;
       masterSongName.innerText = songs[songIndex].songName;
       audioElement.currentTime = 0;
       audioElement.play();
@@ -126,12 +146,21 @@ document.getElementById("next").addEventListener("click", () => {
   } else {
     songIndex += 1;
   }
-  audioElement.src = `songs/${songIndex + 1}.mp3`;
+  audioElement.src = songs[songIndex].filePath;
   masterSongName.innerText = songs[songIndex].songName;
   audioElement.currentTime = 0;
   audioElement.play();
   masterPlay.classList.remove("fa-play-circle");
   masterPlay.classList.add("fa-pause-circle");
+  updateSongListPlayIcon(songIndex);
+});
+
+// Handle Image Errors
+document.querySelectorAll("img").forEach((img) => {
+  img.addEventListener("error", function () {
+    this.src = "logo.png"; // Fallback image
+    console.error("Image failed to load:", this.alt);
+  });
 });
 
 document.getElementById("previous").addEventListener("click", () => {
@@ -140,10 +169,26 @@ document.getElementById("previous").addEventListener("click", () => {
   } else {
     songIndex -= 1;
   }
-  audioElement.src = `songs/${songIndex + 1}.mp3`;
+  audioElement.src = songs[songIndex].filePath;
   masterSongName.innerText = songs[songIndex].songName;
   audioElement.currentTime = 0;
   audioElement.play();
   masterPlay.classList.remove("fa-play-circle");
   masterPlay.classList.add("fa-pause-circle");
+  updateSongListPlayIcon(songIndex);
+});
+
+audioElement.addEventListener("ended", () => {
+  if (songIndex >= 9) {
+    songIndex = 0;
+  } else {
+    songIndex += 1;
+  }
+  audioElement.src = songs[songIndex].filePath;
+  masterSongName.innerText = songs[songIndex].songName;
+  audioElement.currentTime = 0;
+  audioElement.play();
+  masterPlay.classList.remove("fa-play-circle");
+  masterPlay.classList.add("fa-pause-circle");
+  updateSongListPlayIcon(songIndex);
 });
